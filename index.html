@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DupeHunter v3 — Битрикс24</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+:root {
+  --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2236;--panel:#0f1629;
+  --border:#2a3a5c;--border2:#3d5a8a;
+  --accent:#4fffb0;--accent2:#ff6b6b;--accent3:#ffd166;--accent4:#74b9ff;--accent5:#a29bfe;
+  --text:#e8f4fd;--text2:#8baec8;--text3:#4a6080;
+  --gg:0 0 8px #4fffb0,0 0 20px #4fffb040;
+  --gr:0 0 8px #ff6b6b,0 0 20px #ff6b6b40;
+  --gy:0 0 8px #ffd166,0 0 20px #ffd16640;
+  --gb:0 0 8px #74b9ff,0 0 20px #74b9ff40;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'VT323',monospace;background:var(--bg);color:var(--text);min-height:100vh;font-size:18px;line-height:1.4;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(74,255,176,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(74,255,176,.03) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px);pointer-events:none;z-index:1}
+.app{position:relative;z-index:2;max-width:1140px;margin:0 auto;padding:24px 20px 80px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding:14px 22px;background:var(--panel);border:2px solid var(--accent);box-shadow:var(--gg)}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-icon{width:44px;height:44px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px);flex-shrink:0}
+.logo h1{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--accent);text-shadow:var(--gg);line-height:1.7}
+.logo p{font-size:14px;color:var(--text2);margin-top:2px}
+.vbadge{font-family:'Press Start 2P',monospace;font-size:7px;padding:6px 10px;border:2px solid var(--accent5);color:var(--accent5);box-shadow:0 0 6px var(--accent5)}
+.webhook-bar{display:flex;margin-bottom:20px;border:2px solid var(--border2)}
+.webhook-bar input{flex:1;background:var(--panel);border:none;color:var(--accent4);font-family:'VT323',monospace;font-size:17px;padding:11px 16px;outline:none}
+.webhook-bar input::placeholder{color:var(--text3)}
+.webhook-bar input:focus{background:var(--bg3)}
+.btn-load{font-family:'Press Start 2P',monospace;font-size:8px;padding:11px 18px;background:var(--accent);color:var(--bg);border:none;cursor:pointer;white-space:nowrap;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);transition:all .1s}
+.btn-load:hover{background:#7fffcb;box-shadow:var(--gg)}
+.btn-load.loading{background:var(--text3);color:var(--text2);cursor:wait}
+.entity-tabs{display:flex;gap:4px;margin-bottom:18px}
+.tab-btn{font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 14px;background:var(--panel);border:2px solid var(--border);color:var(--text2);cursor:pointer;transition:all .1s;clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}
+.tab-btn::before{content:attr(data-icon);display:block;font-size:16px;margin-bottom:5px;font-family:'VT323',monospace}
+.tab-btn:hover{border-color:var(--border2);color:var(--text)}
+.tab-btn.active[data-entity=deals]{border-color:var(--accent);color:var(--accent);box-shadow:var(--gg);background:rgba(79,255,176,.06)}
+.tab-btn.active[data-entity=contacts]{border-color:var(--accent4);color:var(--accent4);box-shadow:var(--gb);background:rgba(116,185,255,.06)}
+.tab-btn.active[data-entity=companies]{border-color:var(--accent3);color:var(--accent3);box-shadow:var(--gy);background:rgba(255,209,102,.06)}
+.tab-btn.active[data-entity=leads]{border-color:var(--accent5);color:var(--accent5);box-shadow:0 0 8px var(--accent5);background:rgba(162,155,254,.06)}
+.panels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.panel{background:var(--panel);border:2px solid var(--border);padding:16px}
+.ptitle{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--text3);letter-spacing:1px;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.field-label{font-size:14px;color:var(--text2);margin-bottom:5px;display:block}
+.pixel-select{width:100%;background:var(--bg3);border:2px solid var(--border);color:var(--text);font-family:'VT323',monospace;font-size:17px;padding:7px 12px;outline:none;margin-bottom:12px;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h2v2h2v2h2V2h2V0h2v2H8v2H6v2H4V4H2V2H0V0z' fill='%234a6080'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.pixel-select:focus{border-color:var(--border2)}
+.pixel-input{width:100%;background:var(--bg3);border:2px solid var(--border);color:var(--text);font-family:'VT323',monospace;font-size:16px;padding:7px 10px;outline:none;margin-bottom:8px}
+.pixel-input:focus{border-color:var(--border2)}
+.check-group{display:flex;flex-direction:column;gap:7px}
+.check-item{display:flex;align-items:center;gap:10px;padding:8px 11px;border:2px solid var(--border);cursor:pointer;transition:all .1s;font-size:16px;color:var(--text2);user-select:none}
+.check-item:hover{border-color:var(--border2);color:var(--text)}
+.check-item.on{border-color:var(--accent);color:var(--accent);background:rgba(79,255,176,.05)}
+.check-box{width:12px;height:12px;border:2px solid var(--border2);flex-shrink:0;position:relative;transition:all .1s}
+.check-item.on .check-box{background:var(--accent);border-color:var(--accent);box-shadow:var(--gg)}
+.check-item.on .check-box::after{content:'';position:absolute;top:0px;left:2px;width:5px;height:4px;border-left:2px solid var(--bg);border-bottom:2px solid var(--bg);transform:rotate(-45deg)}
+.match-note{font-size:13px;color:var(--text3);padding:7px 10px;border:1px solid var(--border);border-left:3px solid var(--accent3);margin-top:10px;background:rgba(255,209,102,.03)}
+.ahint{font-size:14px;color:var(--text2);line-height:1.6;padding:9px 11px;border:2px solid var(--border);border-left:4px solid var(--accent3);margin-bottom:12px;background:rgba(255,209,102,.03)}
+.ahint strong{color:var(--accent3)}
+.toggle-row{display:flex;gap:0;margin-bottom:10px}
+.toggle-btn{flex:1;padding:8px 5px;font-family:'VT323',monospace;font-size:15px;background:var(--bg3);border:2px solid var(--border);color:var(--text2);cursor:pointer;text-align:center;transition:all .1s}
+.toggle-btn.a-del{background:rgba(255,107,107,.1);border-color:var(--accent2);color:var(--accent2)}
+.toggle-btn.a-stg{background:rgba(255,209,102,.08);border-color:var(--accent3);color:var(--accent3)}
+.toggle-btn.a-fld{background:rgba(162,155,254,.08);border-color:var(--accent5);color:var(--accent5)}
+.toggle-btn.a-mrg{background:rgba(79,255,176,.06);border-color:var(--accent);color:var(--accent)}
+.opt{display:none}.opt.on{display:block}
+.action-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.btn-find{font-family:'Press Start 2P',monospace;font-size:8px;padding:13px 8px;background:transparent;border:2px solid var(--accent);color:var(--accent);cursor:pointer;transition:all .1s;text-align:center}
+.btn-find:hover{background:rgba(79,255,176,.1);box-shadow:var(--gg)}
+.btn-exec{font-family:'Press Start 2P',monospace;font-size:8px;padding:13px 8px;background:var(--accent2);border:2px solid var(--accent2);color:#fff;cursor:pointer;transition:all .1s;text-align:center}
+.btn-exec:hover{box-shadow:var(--gr)}
+.btn-exec:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.status-bar{display:flex;align-items:center;gap:14px;padding:7px 14px;background:var(--bg);border:1px solid var(--border);margin-bottom:12px;font-size:14px}
+.sdot{width:8px;height:8px;background:var(--text3);flex-shrink:0}
+.sdot.on{background:var(--accent);box-shadow:var(--gg);animation:blink 1s infinite}
+.sdot.err{background:var(--accent2);box-shadow:var(--gr)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.stext{color:var(--text2);flex:1}
+.prog-wrap{height:4px;background:var(--bg3);border:1px solid var(--border);margin-bottom:10px;display:none}
+.prog-wrap.on{display:block}
+.prog-fill{height:100%;background:var(--accent);box-shadow:var(--gg);transition:width .3s;width:0%}
+.console{background:var(--bg);border:1px solid var(--border);padding:9px 13px;height:76px;overflow-y:auto;font-size:13px;color:var(--text3);margin-bottom:10px;display:none}
+.console.on{display:block}
+.cline{margin-bottom:2px}
+.cline.ok{color:var(--accent)}.cline.err{color:var(--accent2)}.cline.info{color:var(--accent4)}.cline.warn{color:var(--accent3)}
+.results-panel{background:var(--panel);border:2px solid var(--border)}
+.results-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:2px solid var(--border);flex-wrap:wrap;gap:8px}
+.rtitle{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--text3);letter-spacing:1px}
+.rstats{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.stat-chip{font-size:13px;padding:4px 9px;border:1px solid var(--border)}
+.stat-chip span{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--accent3)}
+.btn-exp{font-family:'Press Start 2P',monospace;font-size:7px;padding:5px 9px;background:transparent;border:2px solid var(--accent4);color:var(--accent4);cursor:pointer;transition:all .1s;white-space:nowrap}
+.btn-exp:hover{background:rgba(116,185,255,.1);box-shadow:var(--gb)}
+.btn-exp:disabled{opacity:.3;cursor:not-allowed}
+.btn-exp.j{border-color:var(--accent5);color:var(--accent5)}
+.btn-exp.j:hover{background:rgba(162,155,254,.1)}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px}
+.sprite{font-size:38px;animation:float 3s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.empty p{font-size:16px;color:var(--text3);text-align:center}
+.dup-group{border-bottom:1px solid var(--border);padding:14px 16px}
+.dup-group:hover{background:rgba(79,255,176,.015)}
+.dup-group:last-child{border-bottom:none}
+.dg-head{display:flex;align-items:center;gap:10px;cursor:pointer}
+.dg-num{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--bg);background:var(--accent3);padding:4px 6px;flex-shrink:0}
+.dg-cnt{font-size:14px;padding:2px 8px;border:1px solid var(--accent2);color:var(--accent2)}
+.dg-key{flex:1;font-size:14px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dg-toggle{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--text3);flex-shrink:0}
+.dg-body{display:none;margin-top:12px}
+.dg-body.open{display:block}
+.rec-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:12px}
+.rec-card{background:var(--bg3);border:1px solid var(--border);padding:10px 12px;font-size:14px;position:relative}
+.rec-card.master{border-color:var(--accent);background:rgba(79,255,176,.04)}
+.mbadge{position:absolute;top:-1px;right:-1px;font-family:'Press Start 2P',monospace;font-size:5px;background:var(--accent);color:var(--bg);padding:3px 5px}
+.rec-id{font-family:'Press Start 2P',monospace;font-size:6px;color:var(--text3);margin-bottom:4px}
+.rec-name{color:var(--text);margin-bottom:3px;font-size:15px}
+.rec-detail{color:var(--text2);font-size:13px}
+.group-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border)}
+.ga-btn{font-family:'Press Start 2P',monospace;font-size:6px;padding:7px 10px;cursor:pointer;border:2px solid;transition:all .1s;background:transparent}
+.ga-btn.del{border-color:var(--accent2);color:var(--accent2)}
+.ga-btn.del:hover{background:rgba(255,107,107,.12);box-shadow:var(--gr)}
+.ga-btn.stg{border-color:var(--accent3);color:var(--accent3)}
+.ga-btn.stg:hover{background:rgba(255,209,102,.1);box-shadow:var(--gy)}
+.ga-btn.mrg{border-color:var(--accent);color:var(--accent)}
+.ga-btn.mrg:hover{background:rgba(79,255,176,.1);box-shadow:var(--gg)}
+.ga-btn.fld{border-color:var(--accent5);color:var(--accent5)}
+.ga-btn.fld:hover{background:rgba(162,155,254,.1)}
+.ga-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.ga-done{font-size:13px;color:var(--accent);padding:7px 10px;border:2px solid var(--accent);background:rgba(79,255,176,.08)}
+.ga-error{font-size:13px;color:var(--accent2);padding:7px 10px;border:2px solid var(--accent2);background:rgba(255,107,107,.08)}
+.notif{position:fixed;bottom:20px;right:20px;z-index:1000;padding:13px 18px;font-size:15px;border:2px solid;max-width:300px;transform:translateY(100px);opacity:0;transition:all .3s}
+.notif.show{transform:translateY(0);opacity:1}
+.notif.ok{border-color:var(--accent);color:var(--accent);background:rgba(79,255,176,.06)}
+.notif.err{border-color:var(--accent2);color:var(--accent2);background:rgba(255,107,107,.06)}
+.notif.warn{border-color:var(--accent3);color:var(--accent3);background:rgba(255,209,102,.06)}
+.cursor-blink::after{content:'█';animation:blink .8s infinite;color:var(--accent);font-size:.8em}
+.andor-row{display:flex;gap:0;margin-bottom:8px}
+.andor-btn{flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:8px 4px;background:var(--bg3);border:2px solid var(--border);color:var(--text2);cursor:pointer;text-align:center;transition:all .1s}
+.andor-btn.active{background:rgba(255,209,102,.1);border-color:var(--accent3);color:var(--accent3);box-shadow:var(--gy)}
+.andor-hint{font-size:13px;color:var(--text3);padding:5px 8px;border-left:3px solid var(--accent3);margin-bottom:10px;background:rgba(255,209,102,.03)}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2)}
+@media(max-width:820px){.panels{grid-template-columns:1fr}.action-buttons{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">🕵</div>
+    <div>
+      <h1>DUPEHUNTER<span class="cursor-blink"></span></h1>
+      <p>Поиск и слияние дублей в Битрикс24</p>
+    </div>
+  </div>
+  <div class="vbadge">v3.0</div>
+</div>
+
+<div class="webhook-bar">
+  <input type="text" id="webhookInput" placeholder="https://your-domain.bitrix24.kz/rest/USER_ID/WEBHOOK_KEY/" />
+  <button class="btn-load" id="btnLoad" onclick="loadPortal()">⚡ ЗАГРУЗИТЬ</button>
+</div>
+
+<div class="entity-tabs">
+  <button class="tab-btn active" data-entity="deals"     data-icon="⚔"  onclick="switchEntity('deals',this)">СДЕЛКИ</button>
+  <button class="tab-btn"        data-entity="contacts"  data-icon="👤"  onclick="switchEntity('contacts',this)">КОНТАКТЫ</button>
+  <button class="tab-btn"        data-entity="companies" data-icon="🏰"  onclick="switchEntity('companies',this)">КОМПАНИИ</button>
+  <button class="tab-btn"        data-entity="leads"     data-icon="⚡"  onclick="switchEntity('leads',this)">ЛИДЫ</button>
+</div>
+
+<div class="panels">
+
+  <!-- FILTER -->
+  <div class="panel">
+    <div class="ptitle">// Фильтр</div>
+    <div id="fDeals">
+      <label class="field-label">Воронка</label>
+      <select class="pixel-select" id="funnelSel" onchange="onFunnelChange()"><option value="">-- сначала загрузите --</option></select>
+      <label class="field-label">Стадия (фильтр)</label>
+      <select class="pixel-select" id="stageSel"><option value="">-- все стадии --</option></select>
+      <button onclick="debugStages()" style="width:100%;font-family:'Press Start 2P',monospace;font-size:6px;padding:7px;background:transparent;border:2px solid var(--accent3);color:var(--accent3);cursor:pointer;margin-top:-4px">🔧 ОТЛАДКА СТАДИЙ</button>
+    </div>
+    <div id="fContacts" style="display:none">
+      <label class="field-label">Показывать</label>
+      <select class="pixel-select" id="contactFilter">
+        <option value="all">Все контакты</option>
+        <option value="with_deals">С активными сделками</option>
+        <option value="no_deals">Без сделок</option>
+      </select>
+    </div>
+    <div id="fCompanies" style="display:none">
+      <label class="field-label">Тип компании</label>
+      <select class="pixel-select" id="companyFilter">
+        <option value="all">Все компании</option>
+        <option value="CLIENT">Клиент</option>
+        <option value="SUPPLIER">Поставщик</option>
+        <option value="PARTNER">Партнёр</option>
+      </select>
+    </div>
+    <div id="fLeads" style="display:none">
+      <label class="field-label">Статус лида</label>
+      <select class="pixel-select" id="leadFilter">
+        <option value="all">Все лиды</option>
+        <option value="NEW">Новые</option>
+        <option value="IN_PROCESS">В работе</option>
+        <option value="JUNK">Некачественные</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KEYS (multi-check) -->
+  <div class="panel">
+    <div class="ptitle">// Ключи дубля</div>
+    <div class="andor-row">
+      <button class="andor-btn active" id="btnOR"  onclick="setMatchMode('OR')">ИЛИ (OR)</button>
+      <button class="andor-btn"        id="btnAND" onclick="setMatchMode('AND')">И (AND)</button>
+    </div>
+    <div class="andor-hint" id="andorHint">OR: дубль если совпадает хотя бы один ключ</div>
+    <div id="kDeals" class="check-group">
+      <div class="check-item on" onclick="toggleKey(this)" data-key="deal_title"><div class="check-box"></div>Название сделки</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="contact_id"><div class="check-box"></div>ID контакта</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="company_id"><div class="check-box"></div>ID компании</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="phone_contact"><div class="check-box"></div>Телефон контакта</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="email_contact"><div class="check-box"></div>Email контакта</div>
+    </div>
+    <div id="kContacts" class="check-group" style="display:none">
+      <div class="check-item on" onclick="toggleKey(this)" data-key="phone"><div class="check-box"></div>Телефон</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="email"><div class="check-box"></div>Email</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="full_name"><div class="check-box"></div>Имя и фамилия</div>
+    </div>
+    <div id="kCompanies" class="check-group" style="display:none">
+      <div class="check-item on" onclick="toggleKey(this)" data-key="title"><div class="check-box"></div>Название компании</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="phone"><div class="check-box"></div>Телефон</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="email"><div class="check-box"></div>Email</div>
+    </div>
+    <div id="kLeads" class="check-group" style="display:none">
+      <div class="check-item on" onclick="toggleKey(this)" data-key="phone"><div class="check-box"></div>Телефон</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="email"><div class="check-box"></div>Email</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="full_name"><div class="check-box"></div>Имя и фамилия</div>
+      <div class="check-item"   onclick="toggleKey(this)" data-key="title"><div class="check-box"></div>Название лида</div>
+    </div>
+  </div>
+
+  <!-- ACTION -->
+  <div class="panel">
+    <div class="ptitle">// Действие (массовое)</div>
+
+    <div id="aDealLead">
+      <div class="toggle-row">
+        <button class="toggle-btn a-del" onclick="setAct('delete',this,'aDealLead')">🗑 Удалить</button>
+        <button class="toggle-btn"       onclick="setAct('stage',this,'aDealLead')">📦 В стадию</button>
+        <button class="toggle-btn"       onclick="setAct('merge',this,'aDealLead')">🔀 Влить</button>
+      </div>
+      <div class="opt on" id="oDel"><div class="ahint"><strong>Удалить:</strong> дубли удаляются, основная запись остаётся</div></div>
+      <div class="opt" id="oStg">
+        <div class="ahint"><strong>В стадию:</strong> дубли переводятся в выбранную стадию</div>
+        <label class="field-label">Целевая воронка</label>
+        <select class="pixel-select" id="tgtFunnel" onchange="loadTargetStages()"><option value="">-- выберите --</option></select>
+        <label class="field-label">Целевая стадия</label>
+        <select class="pixel-select" id="tgtStage"><option value="">-- сначала воронку --</option></select>
+      </div>
+      <div class="opt" id="oMrg">
+        <div class="ahint"><strong>Влить:</strong> данные дубля → основная запись, дубль удаляется</div>
+        <label class="field-label">Основная запись</label>
+        <select class="pixel-select" id="masterStrat"><option value="oldest">Оставить старшую (мин. ID)</option><option value="newest">Оставить новейшую (макс. ID)</option></select>
+      </div>
+    </div>
+
+    <div id="aCC" style="display:none">
+      <div class="toggle-row">
+        <button class="toggle-btn a-del" onclick="setAct('delete',this,'aCC')">🗑 Удалить</button>
+        <button class="toggle-btn"       onclick="setAct('field',this,'aCC')">🏷 Метка</button>
+        <button class="toggle-btn"       onclick="setAct('merge',this,'aCC')">🔀 Влить</button>
+      </div>
+      <div class="opt on" id="oCCDel"><div class="ahint"><strong>Удалить:</strong> дубли удаляются, связи переносятся на основную</div></div>
+      <div class="opt" id="oCCFld">
+        <div class="ahint"><strong>Метка:</strong> в пользовательское поле записывается отметка дубля</div>
+        <label class="field-label">Поле (код из Битрикс24)</label>
+        <div style="display:flex;gap:0;margin-bottom:8px">
+          <input class="pixel-input" id="fldName" value="UF_CRM_DUPLICATE" style="flex:1;margin-bottom:0" placeholder="UF_CRM_1_XXXXXXXXXX" />
+          <button onclick="testField()" style="font-family:'Press Start 2P',monospace;font-size:6px;padding:7px 8px;background:transparent;border:2px solid var(--accent3);border-left:none;color:var(--accent3);cursor:pointer;white-space:nowrap">🔧 ТЕСТ</button>
+        </div>
+        <div class="andor-hint" style="margin-bottom:8px">Введите код поля. Тип поля в Б24 должен быть «Строка» или «Список»</div>
+        <label class="field-label">Текст метки</label>
+        <input class="pixel-input" id="fldText" value="[ДУБЛЬ] Основная: ID {master_id}" />
+        <label class="field-label">Также ставить метку на</label>
+        <select class="pixel-select" id="fldTarget">
+          <option value="dupes">Только на дублях</option>
+          <option value="all">На всех записях группы</option>
+        </select>
+      </div>
+      <div class="opt" id="oCCMrg">
+        <div class="ahint"><strong>Влить:</strong> все сделки/лиды → основная запись, дубль удаляется</div>
+        <label class="field-label">Основная запись</label>
+        <select class="pixel-select" id="masterStratCC"><option value="oldest">Оставить старшую (мин. ID)</option><option value="newest">Оставить новейшую (макс. ID)</option></select>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="btn-find" onclick="findDuplicates()">🔍 НАЙТИ</button>
+      <button class="btn-exec" id="btnExecAll" onclick="execAll()" disabled>⚡ ВСЕ</button>
+    </div>
+  </div>
+</div>
+
+<div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
+<div class="console" id="console"></div>
+
+<div class="status-bar">
+  <div class="sdot" id="sdot"></div>
+  <div class="stext" id="stext">Готов. Введите вебхук и нажмите «Загрузить»</div>
+</div>
+
+<div class="results-panel">
+  <div class="results-header">
+    <div class="rtitle">// Результаты</div>
+    <div class="rstats">
+      <div class="stat-chip">Групп: <span id="stGrp">0</span></div>
+      <div class="stat-chip">Дублей: <span id="stDup">0</span></div>
+      <div class="stat-chip">Загружено: <span id="stLoad">0</span></div>
+      <button class="btn-exp"   id="btnCSV"  onclick="exportCSV()"  disabled>📥 CSV</button>
+      <button class="btn-exp j" id="btnJSON" onclick="exportJSON()" disabled>📋 JSON</button>
+    </div>
+  </div>
+  <div id="resultsBody">
+    <div class="empty"><div class="sprite">🕵</div><p>Введите вебхук и нажмите «НАЙТИ»<br>для поиска дублей</p></div>
+  </div>
+</div>
+
+</div>
+<div class="notif" id="notif"></div>
+
+<script>
+const S = {
+  entity:'deals', webhook:'',
+  funnels:[], stages:{},
+  records:[], groups:[],
+  action:'delete', actionCC:'delete',
+  matchMode:'OR',   // 'OR' | 'AND'
+  contactEmailMap:{}, // cache: contactId → [emails]
+};
+
+// ─── UTILS ────────────────────────────────────────────────
+function notify(msg,type='ok'){const el=document.getElementById('notif');el.textContent=msg;el.className=`notif ${type} show`;setTimeout(()=>el.className='notif',3500)}
+function log(msg,type='info'){const c=document.getElementById('console');c.classList.add('on');const d=document.createElement('div');d.className='cline '+type;d.textContent='> '+msg;c.appendChild(d);c.scrollTop=c.scrollHeight}
+function setStatus(msg,act,err){document.getElementById('stext').textContent=msg;document.getElementById('sdot').className='sdot'+(act?' on':'')+(err?' err':'')}
+function setProgress(p){document.getElementById('progWrap').classList.add('on');document.getElementById('progFill').style.width=p+'%';if(p>=100)setTimeout(()=>document.getElementById('progWrap').classList.remove('on'),800)}
+function normPhone(p){let d=(p||'').replace(/\D/g,'');if(d.length===11&&d[0]==='8')d='7'+d.slice(1);return d}
+function normStr(s){return(s||'').toLowerCase().trim().replace(/\s+/,' ')}
+function getPhones(r){return(r.PHONE||[]).map(x=>normPhone(x.VALUE)).filter(x=>x.length>=7)}
+function getEmails(r){return(r.EMAIL||[]).map(x=>(x.VALUE||'').toLowerCase().trim()).filter(x=>x.includes('@'))}
+function getLabel(r){const e=S.entity;if(e==='deals')return r.TITLE||'—';if(e==='contacts'||e==='leads')return(`${r.NAME||''} ${r.LAST_NAME||''}`).trim()||r.TITLE||'—';return r.TITLE||'—'}
+function getDetail(r){const e=S.entity;if(e==='deals')return`Контакт:${r.CONTACT_ID||'—'} | Компания:${r.COMPANY_ID||'—'}`;const ph=(r.PHONE||[])[0]?.VALUE||(r._phones||[])[0]||'';const em=(r.EMAIL||[])[0]?.VALUE||'';return[ph,em].filter(Boolean).join(' | ')||'—'}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function dl(content,name,mime){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type:mime}));a.download=name;a.click()}
+
+// ─── API ─────────────────────────────────────────────────
+// Определяем адрес прокси:
+// - Netlify:   /.netlify/functions/b24proxy
+// - Node.js:   /b24proxy (proxy.js)
+// - localhost: прямой запрос
+const PROXY_URL = (() => {
+  const host = window.location.hostname;
+  const port = window.location.port;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    // Если запущен через node proxy.js (порт 3000) — используем /b24proxy
+    // Если через python http.server — прямой запрос
+    if (port === '3000') return '/b24proxy';
+    return null;
+  }
+  // На Netlify — через Functions
+  return '/.netlify/functions/b24proxy';
+})();
+
+async function b24(method, params={}){
+  if(!S.webhook){notify('Укажите вебхук!','err');return null}
+  try{
+    let r;
+    if(PROXY_URL){
+      r = await fetch(PROXY_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({webhook: S.webhook, method, params})
+      });
+    } else {
+      r = await fetch(`${S.webhook}${method}`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(params)
+      });
+    }
+    if(!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+    const text = await r.text();
+    if(!text) throw new Error('Пустой ответ от сервера');
+    const d = JSON.parse(text);
+    if(d.error){log(`Ошибка ${method}: ${d.error_description||d.error}`,'err');return null}
+    return d.result
+  }catch(e){
+    log(`Ошибка запроса [${method}]: ${e.message}`,'err');
+    return null
+  }
+}
+async function b24all(method,params={}){
+  let start=0,all=[];
+  while(true){const r=await b24(method,{...params,start});if(!Array.isArray(r))break;all=all.concat(r);if(r.length<50)break;start+=50}
+  return all
+}
+
+// ─── LOAD PORTAL ─────────────────────────────────────────
+async function loadPortal(){
+  const hook=document.getElementById('webhookInput').value.trim();
+  if(!hook||!hook.startsWith('http')){notify('Введите корректный URL вебхука','err');return}
+  S.webhook=hook.endsWith('/')?hook:hook+'/';
+  const btn=document.getElementById('btnLoad');
+  btn.textContent='⟳ ЗАГРУЗКА...';btn.classList.add('loading');
+  setStatus('Загружаем воронки и стадии...',true);
+  document.getElementById('console').innerHTML='';
+  log('Подключаемся...','info');
+
+  // Воронки сделок
+  const catRes=await b24('crm.category.list',{entityTypeId:2});
+  const rawCats=(catRes?.categories)||[];
+  S.funnels=[{id:'0',name:'Общая воронка'},...rawCats.map(c=>({id:String(c.id),name:c.name}))];
+  S.stages={};
+  log(`Воронок: ${S.funnels.length}`,'ok');
+
+  // Загружаем ВСЕ статусы одним запросом, потом разбиваем по воронкам
+  log('Загружаем стадии сделок...','info');
+  const allStatuses=await b24all('crm.status.list',{select:['STATUS_ID','NAME','ENTITY_ID']});
+  const dealStatuses=allStatuses.filter(s=>s.ENTITY_ID&&s.ENTITY_ID.toUpperCase().includes('DEAL'));
+  log('Всего статусов в системе: '+allStatuses.length+', DEAL-статусов: '+dealStatuses.length,'ok');
+
+  // Стадии общей воронки: ENTITY_ID = 'DEAL_STAGE' и нет ':' в STATUS_ID
+  S.stages['0']=dealStatuses.filter(s=>!s.STATUS_ID.includes(':')&&!s.ENTITY_ID.includes('_C'));
+  log('Общая воронка: '+S.stages['0'].length+' стадий','ok');
+
+  for(const f of rawCats){
+    const fid=String(f.id);
+    // Пробуем оба формата которые встречаются в разных версиях Б24
+    let st=dealStatuses.filter(s=>s.ENTITY_ID==='DEAL_STAGE_C'+fid);
+    if(!st.length) st=dealStatuses.filter(s=>s.STATUS_ID.startsWith('C'+fid+':'));
+    if(!st.length) st=dealStatuses.filter(s=>s.ENTITY_ID==='C'+fid+'_DEAL_STAGE');
+    S.stages[fid]=st;
+    log('Воронка "'+f.name+'" (id='+fid+'): '+st.length+' стадий'+(st.length?' ['+st.map(s=>s.NAME).join(', ')+']':''),'ok');
+  }
+
+  // Фолбэк: если для какой-то воронки стадий 0 — читаем из реальных сделок
+  for(const f of S.funnels){
+    if(S.stages[f.id]&&S.stages[f.id].length)continue;
+    log('Воронка "'+f.name+'" — стадии не найдены через status.list, читаем из сделок...','warn');
+    const filter=f.id!=='0'?{CATEGORY_ID:f.id}:{};
+    const sample=await b24all('crm.deal.list',{filter,select:['STAGE_ID','STAGE_NAME']});
+    const seen={};const stages=[];
+    sample.forEach(d=>{if(d.STAGE_ID&&!seen[d.STAGE_ID]){seen[d.STAGE_ID]=1;stages.push({STATUS_ID:d.STAGE_ID,NAME:d.STAGE_NAME||d.STAGE_ID})}});
+    S.stages[f.id]=stages;
+    if(stages.length)log('  Найдено из сделок: '+stages.map(s=>s.NAME).join(', '),'warn');
+  }
+
+  const fSel=document.getElementById('funnelSel');
+  const tSel=document.getElementById('tgtFunnel');
+  fSel.innerHTML='<option value="">-- все воронки --</option>';
+  tSel.innerHTML='<option value="">-- выберите --</option>';
+  S.funnels.forEach(f=>{
+    fSel.innerHTML+=`<option value="${f.id}">${f.name}</option>`;
+    tSel.innerHTML+=`<option value="${f.id}">${f.name}</option>`;
+  });
+
+  btn.textContent='✓ ЗАГРУЖЕНО';btn.classList.remove('loading');
+  const sc=Object.values(S.stages).flat().length;
+  setStatus(`Загружено ${S.funnels.length} воронок, ${sc} стадий`);
+  notify(`Готово: ${S.funnels.length} воронок, ${sc} стадий`,'ok');
+}
+
+function onFunnelChange(){
+  const fid=document.getElementById('funnelSel').value;
+  const sSel=document.getElementById('stageSel');
+  sSel.innerHTML='<option value="">-- все стадии --</option>';
+  const stages=S.stages[fid||'0']||[];
+  stages.forEach(s=>sSel.innerHTML+=`<option value="${s.STATUS_ID}">${s.NAME}</option>`);
+  log('Воронка id='+( fid||'0')+', стадий: '+stages.length+(stages.length?': '+stages.map(s=>s.NAME).join(', '):''),'info');
+}
+
+async function loadTargetStages(){
+  const fid=document.getElementById('tgtFunnel').value;
+  const sSel=document.getElementById('tgtStage');
+  sSel.innerHTML='<option value="">-- загружаем --</option>';
+  if(!fid)return;
+  if(!S.stages[fid]||!S.stages[fid].length){
+    const eid=fid==='0'?'DEAL_STAGE':'DEAL_STAGE_C'+fid;
+    const st=await b24all('crm.status.list',{filter:{ENTITY_ID:eid}});
+    S.stages[fid]=st||[];
+  }
+  sSel.innerHTML=(S.stages[fid]||[]).map(s=>`<option value="${s.STATUS_ID}">${s.NAME}</option>`).join('');
+}
+
+async function debugStages(){
+  if(!S.webhook){notify('Сначала нажмите Загрузить','err');return}
+  const fid=document.getElementById('funnelSel').value||'0';
+  const fname=S.funnels.find(f=>f.id===fid)?.name||'Общая';
+  log('--- ДИАГНОСТИКА СТАДИЙ ---','warn');
+  log('Выбранная воронка: '+fname+' id='+fid,'info');
+
+  // Шаг 1: все статусы без фильтра
+  log('Шаг 1: crm.status.list без фильтра...','info');
+  const all=await b24('crm.status.list',{select:['ID','STATUS_ID','NAME','ENTITY_ID'],start:0});
+  if(!Array.isArray(all)){log('Ошибка — пустой ответ','err');return}
+  const dealSt=all.filter(s=>s.ENTITY_ID&&s.ENTITY_ID.toUpperCase().includes('DEAL'));
+  log('Всего статусов: '+all.length+', из них DEAL: '+dealSt.length,'warn');
+  dealSt.slice(0,20).forEach(s=>log('  ENTITY_ID='+s.ENTITY_ID+' | STATUS_ID='+s.STATUS_ID+' | NAME='+s.NAME,'info'));
+
+  // Шаг 2: применяем найденный формат к текущей воронке
+  log('Шаг 2: ищем стадии для воронки id='+fid+'...','info');
+  let found=[];
+  if(fid==='0'){
+    found=dealSt.filter(s=>!s.STATUS_ID.includes(':')&&!s.ENTITY_ID.includes('_C'));
+  } else {
+    found=dealSt.filter(s=>
+      s.ENTITY_ID==='DEAL_STAGE_C'+fid ||
+      s.STATUS_ID.startsWith('C'+fid+':') ||
+      s.ENTITY_ID==='C'+fid+'_DEAL_STAGE'
+    );
+  }
+  log('Найдено для воронки: '+found.length+(found.length?': '+found.map(s=>s.NAME).join(', '):''),'warn');
+
+  if(found.length){
+    S.stages[fid]=found;
+    onFunnelChange();
+    notify('Стадии загружены: '+found.length,'ok');
+  } else {
+    log('Стадии не найдены автоматически. Вставьте лог выше в чат с разработчиком.','err');
+    notify('Стадии не найдены — см. консоль','err');
+  }
+}
+
+// ─── SWITCHING ────────────────────────────────────────────
+function switchEntity(entity,el){
+  S.entity=entity;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');
+  ['fDeals','fContacts','fCompanies','fLeads'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('f'+cap(entity)).style.display='block';
+  ['kDeals','kContacts','kCompanies','kLeads'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('k'+cap(entity)).style.display='flex';
+  const isDL=entity==='deals'||entity==='leads';
+  document.getElementById('aDealLead').style.display=isDL?'block':'none';
+  document.getElementById('aCC').style.display=isDL?'none':'block';
+  clearResults();
+}
+
+function toggleKey(el){
+  el.classList.toggle('on');
+  const grp=el.closest('.check-group');
+  if(!grp.querySelectorAll('.check-item.on').length)el.classList.add('on');
+}
+
+function setAct(action,btn,cid){
+  document.getElementById(cid).querySelectorAll('.toggle-btn').forEach(b=>b.className='toggle-btn');
+  btn.classList.add({delete:'a-del',stage:'a-stg',field:'a-fld',merge:'a-mrg'}[action]||'a-del');
+  if(cid==='aDealLead'){
+    S.action=action;
+    ['oDel','oStg','oMrg'].forEach(id=>document.getElementById(id).classList.remove('on'));
+    ({delete:'oDel',stage:'oStg',merge:'oMrg'})[action]&&document.getElementById({delete:'oDel',stage:'oStg',merge:'oMrg'}[action]).classList.add('on');
+  } else {
+    S.actionCC=action;
+    ['oCCDel','oCCFld','oCCMrg'].forEach(id=>document.getElementById(id).classList.remove('on'));
+    ({delete:'oCCDel',field:'oCCFld',merge:'oCCMrg'})[action]&&document.getElementById({delete:'oCCDel',field:'oCCFld',merge:'oCCMrg'}[action]).classList.add('on');
+  }
+}
+
+function getSelectedKeys(){
+  return[...document.getElementById('k'+cap(S.entity)).querySelectorAll('.check-item.on')].map(el=>el.dataset.key);
+}
+
+function setMatchMode(mode){
+  S.matchMode=mode;
+  document.getElementById('btnOR').classList.toggle('active',mode==='OR');
+  document.getElementById('btnAND').classList.toggle('active',mode==='AND');
+  document.getElementById('andorHint').textContent=
+    mode==='OR'
+      ?'OR: дубль если совпадает хотя бы один из ключей'
+      :'AND: дубль только если совпадают ВСЕ выбранные ключи одновременно';
+}
+
+// ─── FIND ─────────────────────────────────────────────────
+async function findDuplicates(){
+  if(!S.webhook){notify('Введите вебхук и нажмите Загрузить','err');return}
+  const keys=getSelectedKeys();
+  if(!keys.length){notify('Выберите хотя бы один ключ','warn');return}
+  setStatus('Загружаем данные...',true);setProgress(5);
+  document.getElementById('console').innerHTML='';document.getElementById('console').classList.add('on');
+  document.getElementById('btnExecAll').disabled=true;
+  document.getElementById('btnCSV').disabled=true;document.getElementById('btnJSON').disabled=true;
+  log(`Сущность: ${S.entity} | Ключи: ${keys.join(', ')}`,'info');
+
+  let records=[];
+  if(S.entity==='deals'){
+    const fid=document.getElementById('funnelSel').value;
+    const sid=document.getElementById('stageSel').value;
+    const filter={};if(fid)filter.CATEGORY_ID=fid;if(sid)filter.STAGE_ID=sid;
+    log('Загружаем сделки...','info');
+    records=await b24all('crm.deal.list',{filter,select:['ID','TITLE','CONTACT_ID','COMPANY_ID','STAGE_ID','CATEGORY_ID','DATE_CREATE']});
+    const needPhone=keys.includes('phone_contact');
+    const needEmail=keys.includes('email_contact');
+    if((needPhone||needEmail)&&records.length){
+      log('Загружаем данные контактов...','info');setProgress(30);
+      const cids=[...new Set(records.map(r=>r.CONTACT_ID).filter(Boolean))];
+      const pm={};const em={};
+      for(let i=0;i<cids.length;i+=10){
+        await Promise.all(cids.slice(i,i+10).map(async cid=>{
+          const c=await b24('crm.contact.get',{id:cid});
+          if(c){pm[cid]=getPhones(c);em[cid]=getEmails(c);}
+        }));
+        setProgress(30+Math.round(40*(i/cids.length)));
+      }
+      records.forEach(r=>{r._phones=pm[r.CONTACT_ID]||[];r._emails=em[r.CONTACT_ID]||[];});
+    }
+  } else if(S.entity==='contacts'){
+    log('Загружаем контакты...','info');
+    records=await b24all('crm.contact.list',{select:['ID','NAME','LAST_NAME','PHONE','EMAIL','DATE_CREATE','COMMENTS']});
+  } else if(S.entity==='companies'){
+    log('Загружаем компании...','info');
+    records=await b24all('crm.company.list',{select:['ID','TITLE','PHONE','EMAIL','DATE_CREATE','COMMENTS']});
+  } else if(S.entity==='leads'){
+    const lf=document.getElementById('leadFilter').value;
+    const filter=lf&&lf!=='all'?{STATUS_ID:lf}:{};
+    log('Загружаем лиды...','info');
+    records=await b24all('crm.lead.list',{filter,select:['ID','TITLE','NAME','LAST_NAME','PHONE','EMAIL','DATE_CREATE','STATUS_ID']});
+  }
+
+  S.records=records;document.getElementById('stLoad').textContent=records.length;
+  log(`Загружено: ${records.length}`,'ok');setProgress(80);
+
+  const groups=detectDuplicates(records,keys);S.groups=groups;
+  const totalDup=groups.reduce((s,g)=>s+g.records.length-1,0);
+  document.getElementById('stGrp').textContent=groups.length;
+  document.getElementById('stDup').textContent=totalDup;
+  setProgress(100);setStatus(`Найдено ${groups.length} групп (${totalDup} дублей)`);
+  log(`Групп: ${groups.length}`,groups.length>0?'warn':'ok');
+  renderResults(groups);
+  if(groups.length>0){
+    document.getElementById('btnExecAll').disabled=false;
+    document.getElementById('btnCSV').disabled=false;document.getElementById('btnJSON').disabled=false;
+    notify(`Найдено ${groups.length} групп дублей`,'warn');
+  } else notify('Дублей не найдено!','ok');
+}
+
+// ─── DETECT ───────────────────────────────────────────────
+function detectDuplicates(records,keys){
+  if(S.matchMode==='AND'){
+    return detectAND(records,keys);
+  } else {
+    return detectOR(records,keys);
+  }
+}
+
+// OR: union-find — дубль если хотя бы один ключ совпал
+function detectOR(records,keys){
+  const parent={};
+  records.forEach(r=>parent[r.ID]=r.ID);
+  function find(x){if(parent[x]!==x)parent[x]=find(parent[x]);return parent[x]}
+  function union(a,b){const ra=find(a),rb=find(b);if(ra!==rb){if(parseInt(ra)<parseInt(rb))parent[rb]=ra;else parent[ra]=rb}}
+  for(const key of keys){
+    const idx={};
+    for(const r of records){
+      for(const v of getKeyValues(r,key)){
+        if(!v)continue;
+        if(!idx[v])idx[v]=[];idx[v].push(r.ID);
+      }
+    }
+    for(const ids of Object.values(idx)){
+      if(ids.length<2)continue;
+      for(let i=1;i<ids.length;i++)union(ids[0],ids[i]);
+    }
+  }
+  const groups={};
+  records.forEach(r=>{const root=find(r.ID);if(!groups[root])groups[root]=[];groups[root].push(r)});
+  return Object.values(groups).filter(g=>g.length>=2).map(g=>{
+    const sorted=g.sort((a,b)=>parseInt(a.ID)-parseInt(b.ID));
+    return{records:sorted,ids:sorted.map(r=>r.ID),key:'[OR] '+buildKeyStr(sorted[0],keys)};
+  });
+}
+
+// AND: строгий попарный — дубль только если ВСЕ ключи совпадают у КАЖДОЙ пары в группе
+function detectAND(records,keys){
+  const byId={};records.forEach(r=>byId[r.ID]=r);
+
+  // Сначала собираем все пары у которых совпадают ВСЕ ключи
+  const validPairs=new Set(); // "idA|idB" где idA < idB
+
+  // Для ускорения: кандидаты через первый ключ
+  const firstIdx={};
+  for(const r of records){
+    for(const v of getKeyValues(r,keys[0])){
+      if(!v)continue;
+      if(!firstIdx[v])firstIdx[v]=[];
+      firstIdx[v].push(r.ID);
+    }
+  }
+
+  for(const ids of Object.values(firstIdx)){
+    if(ids.length<2)continue;
+    for(let i=0;i<ids.length;i++){
+      for(let j=i+1;j<ids.length;j++){
+        const a=ids[i],b=ids[j];
+        const ra=byId[a],rb=byId[b];
+        if(!ra||!rb)continue;
+        // Проверяем ВСЕ ключи для этой пары
+        let allMatch=true;
+        for(const key of keys){
+          const vA=new Set(getKeyValues(ra,key).filter(Boolean));
+          const vB=new Set(getKeyValues(rb,key).filter(Boolean));
+          if(!vA.size||!vB.size){allMatch=false;break}
+          if(![...vA].some(v=>vB.has(v))){allMatch=false;break}
+        }
+        if(allMatch){
+          const pair=[a,b].sort((x,y)=>parseInt(x)-parseInt(y)).join('|');
+          validPairs.add(pair);
+        }
+      }
+    }
+  }
+
+  // Теперь строим группы: запись входит в группу только если она образует
+  // validPair с КАЖДЫМ другим участником группы (clique — полный граф)
+  // Алгоритм: итеративно добавляем записи к группе только если она совместима со всеми
+
+  // Сначала собираем список соседей для каждой записи
+  const neighbors={};
+  for(const pair of validPairs){
+    const[a,b]=pair.split('|');
+    if(!neighbors[a])neighbors[a]=new Set();
+    if(!neighbors[b])neighbors[b]=new Set();
+    neighbors[a].add(b);
+    neighbors[b].add(a);
+  }
+
+  // Ищем клики (группы где каждый связан с каждым)
+  const visited=new Set();
+  const groups=[];
+
+  // Для каждой записи у которой есть соседи — пробуем построить максимальную клику
+  const candidates=[...new Set([...validPairs].flatMap(p=>p.split('|')))];
+  for(const startId of candidates){
+    if(visited.has(startId))continue;
+    const nbrs=neighbors[startId]||new Set();
+    if(!nbrs.size)continue;
+
+    // Строим клику: начинаем с [startId], добавляем соседей только если они связаны со всеми текущими
+    const clique=[startId];
+    for(const nb of nbrs){
+      if(visited.has(nb))continue;
+      // nb должен быть соседом каждого члена клики
+      const canAdd=clique.every(m=>m===nb||(neighbors[nb]&&neighbors[nb].has(m)));
+      if(canAdd)clique.push(nb);
+    }
+
+    if(clique.length>=2){
+      clique.forEach(id=>visited.add(id));
+      const recs=clique.map(id=>byId[id]).filter(Boolean);
+      const sorted=recs.sort((a,b)=>parseInt(a.ID)-parseInt(b.ID));
+      // Формируем строку совпавших значений для каждого ключа
+      const keyStr=keys.map(k=>{
+        const v=getKeyValues(sorted[0],k);
+        return v.length?k+'='+v[0]:'';
+      }).filter(Boolean).join(' & ');
+      groups.push({records:sorted,ids:sorted.map(r=>r.ID),key:'[AND] '+keyStr});
+    }
+  }
+
+  return groups;
+}
+
+function getKeyValues(r,key){
+  if(key==='deal_title')return[normStr(r.TITLE)].filter(Boolean);
+  if(key==='contact_id')return[r.CONTACT_ID].filter(Boolean);
+  if(key==='company_id')return[r.COMPANY_ID].filter(Boolean);
+  if(key==='phone_contact')return r._phones||[];
+  if(key==='email_contact')return r._emails||[];
+  if(key==='phone')return getPhones(r);
+  if(key==='email')return getEmails(r);
+  if(key==='full_name')return[normStr((r.NAME||'')+' '+(r.LAST_NAME||''))].filter(x=>x.trim());
+  if(key==='title')return[normStr(r.TITLE)].filter(Boolean);
+  return[];
+}
+
+function buildKeyStr(r,keys){
+  const parts=[];
+  for(const k of keys){const v=getKeyValues(r,k);if(v.length)parts.push(k+'='+v[0])}
+  return parts.join(' & ');
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderResults(groups){
+  const body=document.getElementById('resultsBody');
+  const e=S.entity;const isDL=e==='deals'||e==='leads';
+  if(!groups.length){body.innerHTML=`<div class="empty"><div class="sprite">✅</div><p>Дублей не найдено!<br>База данных чиста.</p></div>`;return}
+  body.innerHTML=groups.map((g,gi)=>{
+    const cards=g.records.map((r,ri)=>`<div class="rec-card${ri===0?' master':''}">
+      ${ri===0?'<div class="mbadge">MASTER</div>':''}
+      <div class="rec-id">ID: ${r.ID}</div>
+      <div class="rec-name">${getLabel(r)}</div>
+      <div class="rec-detail">${getDetail(r)}</div>
+    </div>`).join('');
+    const btns=isDL
+      ?`<button class="ga-btn del" onclick="execGroup(${gi},'delete')">🗑 Удалить</button>
+        <button class="ga-btn stg" onclick="execGroup(${gi},'stage')">📦 В стадию</button>
+        <button class="ga-btn mrg" onclick="execGroup(${gi},'merge')">🔀 Влить</button>`
+      :`<button class="ga-btn del" onclick="execGroup(${gi},'delete')">🗑 Удалить</button>
+        <button class="ga-btn fld" onclick="execGroup(${gi},'field')">🏷 Метка</button>
+        <button class="ga-btn mrg" onclick="execGroup(${gi},'merge')">🔀 Влить</button>`;
+    return`<div class="dup-group" id="grp-${gi}">
+      <div class="dg-head" onclick="toggleGroup(${gi})">
+        <div class="dg-num">#${String(gi+1).padStart(3,'0')}</div>
+        <div class="dg-cnt">${g.records.length} шт.</div>
+        <div class="dg-key" title="${g.key}">${g.key}</div>
+        <div class="dg-toggle" id="tog-${gi}">[+]</div>
+      </div>
+      <div class="dg-body" id="body-${gi}">
+        <div class="rec-cards">${cards}</div>
+        <div class="group-actions" id="ga-${gi}">${btns}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleGroup(gi){
+  const b=document.getElementById(`body-${gi}`);const t=document.getElementById(`tog-${gi}`);
+  const open=b.classList.contains('open');b.classList.toggle('open',!open);t.textContent=open?'[+]':'[-]';
+}
+
+function clearResults(){
+  S.records=[];S.groups=[];
+  ['stGrp','stDup','stLoad'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('btnExecAll').disabled=true;
+  document.getElementById('btnCSV').disabled=true;document.getElementById('btnJSON').disabled=true;
+  document.getElementById('resultsBody').innerHTML=`<div class="empty"><div class="sprite">🕵</div><p>Нажмите «НАЙТИ» для поиска дублей</p></div>`;
+}
+
+// ─── EXEC GROUP ───────────────────────────────────────────
+async function execGroup(gi,action,skipConfirm=false){
+  const group=S.groups[gi];if(!group)return;
+  const entity=S.entity;
+  if(action==='stage'&&!document.getElementById('tgtStage').value){notify('Выберите целевую стадию в панели «Действие»','warn');return}
+  if(!skipConfirm){
+    const msgs={delete:`Удалить ${group.records.length-1} дубл(ей) из группы #${gi+1}?`,stage:`Перевести дубли группы #${gi+1} в стадию?`,merge:`Влить дубли группы #${gi+1}?`,field:`Поставить метки в группе #${gi+1}?`};
+    if(!confirm(msgs[action]))return;
+  }
+  const gaEl=document.getElementById(`ga-${gi}`);
+  gaEl.querySelectorAll('button').forEach(b=>b.disabled=true);
+  const strat=(document.getElementById('masterStrat')?.value||document.getElementById('masterStratCC')?.value||'oldest');
+  const master=strat==='newest'?group.records[group.records.length-1]:group.records[0];
+  const dupes=group.records.filter(r=>r.ID!==master.ID);
+  log(`Группа #${gi+1}: action=${action}, master=${master.ID}, dupes=[${dupes.map(d=>d.ID)}]`,'info');
+  try{
+    if(action==='delete')await doDelete(entity,dupes);
+    else if(action==='stage')await doStage(entity,master,dupes);
+    else if(action==='merge')await doMerge(entity,master,dupes);
+    else if(action==='field')await doField(entity,master,dupes);
+    log(`✓ Группа #${gi+1} обработана`,'ok');
+    gaEl.innerHTML=`<div class="ga-done">✓ ОБРАБОТАНО (master: ${master.ID})</div>`;
+    document.getElementById('stGrp').textContent=Math.max(0,parseInt(document.getElementById('stGrp').textContent)-1);
+    document.getElementById('stDup').textContent=Math.max(0,parseInt(document.getElementById('stDup').textContent)-dupes.length);
+    notify(`Группа #${gi+1} готово`,'ok');
+  }catch(e){
+    log(`✗ Группа #${gi+1}: ${e.message}`,'err');
+    gaEl.innerHTML=`<div class="ga-error">✗ ${e.message}</div>`;
+    gaEl.querySelectorAll('button').forEach(b=>b.disabled=false);
+    notify(`Ошибка в группе #${gi+1}`,'err');
+  }
+}
+
+// ─── EXEC ALL ─────────────────────────────────────────────
+async function execAll(){
+  if(!S.groups.length)return;
+  const e=S.entity;const action=e==='deals'||e==='leads'?S.action:S.actionCC;
+  const tot=S.groups.reduce((s,g)=>s+g.records.length-1,0);
+  if(!confirm(`Применить "${action}" ко всем ${tot} дублям в ${S.groups.length} группах?`))return;
+  if(action==='stage'&&!document.getElementById('tgtStage').value){notify('Выберите целевую стадию','warn');return}
+  document.getElementById('btnExecAll').disabled=true;setStatus('Применяем...',true);
+  let ok=0,fail=0;
+  for(let gi=0;gi<S.groups.length;gi++){
+    setProgress(Math.round(100*gi/S.groups.length));
+    const gaEl=document.getElementById(`ga-${gi}`);
+    if(gaEl?.querySelector('.ga-done'))continue; // already processed
+    try{await execGroup(gi,action,true);ok++}catch(ex){fail++}
+    await new Promise(r=>setTimeout(r,100)); // small pause
+  }
+  setProgress(100);setStatus(`Готово: ${ok} успешно, ${fail} ошибок`,false,fail>0);
+  notify(`Готово! Успешно: ${ok}${fail?', ошибок: '+fail:''}`,'ok');
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────
+async function doDelete(entity,dupes){
+  const m={deals:'crm.deal.delete',contacts:'crm.contact.delete',companies:'crm.company.delete',leads:'crm.lead.delete'};
+  for(const d of dupes)await b24(m[entity],{id:d.ID});
+}
+
+async function doStage(entity,master,dupes){
+  const tgt=document.getElementById('tgtStage').value;
+  if(!tgt)throw new Error('Не выбрана целевая стадия');
+  const method=entity==='leads'?'crm.lead.update':'crm.deal.update';
+  for(const d of dupes)await b24(method,{id:d.ID,fields:{STAGE_ID:tgt,COMMENTS:`[ДУБЛЬ] Основная запись ID: ${master.ID}`}});
+}
+
+// Merges multi-field arrays (PHONE/EMAIL): adds values from dupe not yet present in master
+function mergeMultiField(masterFields,dupeFields){
+  const existing=new Set((masterFields||[]).map(f=>(f.VALUE||'').toLowerCase().trim()).filter(Boolean));
+  const toAdd=(dupeFields||[]).filter(f=>f.VALUE&&!existing.has(f.VALUE.toLowerCase().trim()));
+  return toAdd.length?[...(masterFields||[]),...toAdd]:null;
+}
+
+async function doMerge(entity,master,dupes){
+  // Load full master record to get current phones/emails
+  const masterGetMethod={contacts:'crm.contact.get',companies:'crm.company.get',deals:'crm.deal.get',leads:'crm.lead.get'};
+  const masterFull=await b24(masterGetMethod[entity],{id:master.ID})||{};
+
+  for(const d of dupes){
+    // Load full dupe record
+    const dupeFull=await b24(masterGetMethod[entity],{id:d.ID})||{};
+
+    if(entity==='contacts'){
+      // Перепривязываем сделки и лиды
+      const deals=await b24all('crm.deal.list',{filter:{CONTACT_ID:d.ID},select:['ID']});
+      for(const deal of deals)await b24('crm.deal.update',{id:deal.ID,fields:{CONTACT_ID:master.ID}});
+      const leads=await b24all('crm.lead.list',{filter:{CONTACT_ID:d.ID},select:['ID']});
+      for(const lead of leads)await b24('crm.lead.update',{id:lead.ID,fields:{CONTACT_ID:master.ID}});
+      // Переносим телефоны и email
+      const updFields={};
+      const newPhones=mergeMultiField(masterFull.PHONE,dupeFull.PHONE);
+      const newEmails=mergeMultiField(masterFull.EMAIL,dupeFull.EMAIL);
+      if(newPhones)updFields.PHONE=newPhones;
+      if(newEmails)updFields.EMAIL=newEmails;
+      if(Object.keys(updFields).length){
+        await b24('crm.contact.update',{id:master.ID,fields:updFields});
+        // обновляем локальный кэш
+        if(newPhones)masterFull.PHONE=newPhones;
+        if(newEmails)masterFull.EMAIL=newEmails;
+        log('Перенесены телефоны/email от контакта '+d.ID+' к '+master.ID,'ok');
+      }
+    } else if(entity==='companies'){
+      const deals=await b24all('crm.deal.list',{filter:{COMPANY_ID:d.ID},select:['ID']});
+      for(const deal of deals)await b24('crm.deal.update',{id:deal.ID,fields:{COMPANY_ID:master.ID}});
+      // Контакты компании
+      const contacts=await b24all('crm.company.contact.items.get',{id:d.ID});
+      for(const c of contacts)await b24('crm.company.contact.add',{id:master.ID,fields:{CONTACT_ID:c.CONTACT_ID}});
+      // Телефоны/email компании
+      const updFields={};
+      const newPhones=mergeMultiField(masterFull.PHONE,dupeFull.PHONE);
+      const newEmails=mergeMultiField(masterFull.EMAIL,dupeFull.EMAIL);
+      if(newPhones)updFields.PHONE=newPhones;
+      if(newEmails)updFields.EMAIL=newEmails;
+      if(Object.keys(updFields).length){
+        await b24('crm.company.update',{id:master.ID,fields:updFields});
+        if(newPhones)masterFull.PHONE=newPhones;
+        if(newEmails)masterFull.EMAIL=newEmails;
+        log('Перенесены телефоны/email от компании '+d.ID+' к '+master.ID,'ok');
+      }
+    } else if(entity==='deals'){
+      const acts=await b24all('crm.activity.list',{filter:{OWNER_TYPE_ID:2,OWNER_ID:d.ID},select:['ID']});
+      for(const a of acts)await b24('crm.activity.update',{id:a.ID,fields:{OWNER_ID:master.ID}});
+    } else if(entity==='leads'){
+      const acts=await b24all('crm.activity.list',{filter:{OWNER_TYPE_ID:1,OWNER_ID:d.ID},select:['ID']});
+      for(const a of acts)await b24('crm.activity.update',{id:a.ID,fields:{OWNER_ID:master.ID}});
+      // Телефоны/email лида
+      const updFields={};
+      const newPhones=mergeMultiField(masterFull.PHONE,dupeFull.PHONE);
+      const newEmails=mergeMultiField(masterFull.EMAIL,dupeFull.EMAIL);
+      if(newPhones)updFields.PHONE=newPhones;
+      if(newEmails)updFields.EMAIL=newEmails;
+      if(Object.keys(updFields).length){
+        await b24('crm.lead.update',{id:master.ID,fields:updFields});
+        if(newPhones)masterFull.PHONE=newPhones;
+        if(newEmails)masterFull.EMAIL=newEmails;
+      }
+    }
+    await b24(`crm.${entity.slice(0,-1)}.delete`,{id:d.ID});
+  }
+}
+
+async function doField(entity,master,dupes){
+  const fn=document.getElementById('fldName').value.trim();
+  if(!fn){notify('Укажите код поля!','err');throw new Error('Не указан код поля')}
+  const tpl=document.getElementById('fldText').value;
+  const target=document.getElementById('fldTarget').value;
+  const methods={contacts:'crm.contact.update',companies:'crm.company.update',deals:'crm.deal.update',leads:'crm.lead.update'};
+  const method=methods[entity];
+  // Метка на дублях (и на основной если выбрано "all")
+  const targets=target==='all'?[master,...dupes]:dupes;
+  for(const r of targets){
+    const isMaster=r.ID===master.ID;
+    const txt=isMaster
+      ?tpl.replace('{master_id}',master.ID).replace('{dup_id}',r.ID)+' [ОСНОВНАЯ]'
+      :tpl.replace('{master_id}',master.ID).replace('{dup_id}',r.ID);
+    const res=await b24(method,{id:r.ID,fields:{[fn]:txt}});
+    if(res===null){
+      log('Ошибка записи в поле '+fn+' для ID '+r.ID+'. Проверьте код поля и его тип в Б24.','err');
+      throw new Error('Не удалось записать в поле '+fn+'. Убедитесь что поле существует и доступно для записи.');
+    }
+    log('Метка поставлена: ID '+r.ID+' → '+fn+'='+txt,'ok');
+  }
+}
+
+async function testField(){
+  const fn=document.getElementById('fldName').value.trim();
+  const entity=S.entity;
+  if(!fn){notify('Введите код поля','err');return}
+  if(!S.records.length){notify('Сначала нажмите НАЙТИ','warn');return}
+  const testId=S.records[0].ID;
+  const methods={contacts:'crm.contact.get',companies:'crm.company.get',deals:'crm.deal.get',leads:'crm.lead.get'};
+  log('Тестируем поле '+fn+' на записи ID='+testId+'...','info');
+  const rec=await b24(methods[entity],{id:testId});
+  if(!rec){log('Не удалось получить запись','err');return}
+  if(fn in rec){
+    log('✓ Поле найдено! Текущее значение: "'+rec[fn]+'"','ok');
+    notify('Поле найдено: '+fn,'ok');
+  } else {
+    log('✗ Поле "'+fn+'" не найдено в записи. Доступные UF_ поля: '+Object.keys(rec).filter(k=>k.startsWith('UF_')).join(', '),'err');
+    notify('Поле не найдено — см. консоль','err');
+  }
+}
+
+// ─── EXPORT ──────────────────────────────────────────────
+function exportCSV(){
+  if(!S.groups.length){notify('Нет данных','err');return}
+  const BOM='\uFEFF';
+  const rows=[['Сущность','Группа','Роль','ID','Название/Имя','Телефон','Email','Дата','Ключ'].join(';')];
+  const eL={deals:'Сделки',contacts:'Контакты',companies:'Компании',leads:'Лиды'};
+  S.groups.forEach((g,gi)=>{
+    g.records.forEach((r,ri)=>{
+      rows.push([eL[S.entity],gi+1,ri===0?'ОСНОВНАЯ':'ДУБЛЬ',r.ID,
+        `"${getLabel(r).replace(/"/g,'""')}"`,
+        (r.PHONE||[]).map(p=>p.VALUE).join('/')||(r._phones||[]).join('/'),
+        (r.EMAIL||[]).map(e=>e.VALUE).join('/'),
+        (r.DATE_CREATE||'').slice(0,10),
+        `"${g.key.replace(/"/g,'""')}"`].join(';'));
+    });rows.push('');
+  });
+  const ts=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  dl(BOM+rows.join('\r\n'),`dupehunter_${S.entity}_${ts}.csv`,'text/csv;charset=utf-8;');
+  notify('CSV скачан','ok');
+}
+
+function exportJSON(){
+  if(!S.groups.length){notify('Нет данных','err');return}
+  const payload={exported_at:new Date().toISOString(),entity:S.entity,total_groups:S.groups.length,
+    total_duplicates:S.groups.reduce((s,g)=>s+g.records.length-1,0),
+    groups:S.groups.map((g,i)=>({group_number:i+1,dup_key:g.key,
+      master:{id:g.records[0].ID,name:getLabel(g.records[0])},
+      duplicates:g.records.slice(1).map(r=>({id:r.ID,name:getLabel(r)}))}))};
+  const ts=new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  dl(JSON.stringify(payload,null,2),`dupehunter_${S.entity}_${ts}.json`,'application/json');
+  notify('JSON скачан','ok');
+}
+</script>
+</body>
+</html>

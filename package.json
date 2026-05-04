@@ -1,0 +1,12 @@
+{
+  "name": "dupehunter-b24",
+  "version": "1.0.0",
+  "description": "Bitrix24 duplicate finder",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
